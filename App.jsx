@@ -4,8 +4,13 @@ import { SafeAreaView, StyleSheet, Platform, StatusBar } from 'react-native';
 import Navigation from './src/navigation/Navigation';
 import SplashScreen from './src/screens/Splash/SplashScreen';
 import GetStartedScreen from './src/screens/GetStarted/GetStartedScreen';
+//import {firebase} from '@react-native-firebase/app';
+import crashlytics from '@react-native-firebase/crashlytics';
 
 const App = () => {
+  crashlytics().log('added crashlytics');
+  //crashlytics().log('App Loaded');
+
   const [isLoading, setIsLoading] = useState(true);
   const [showGetStarted, setShowGetStarted] = useState(false);
 

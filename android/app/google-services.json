@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "17212459668",
+    "project_id": "skinsync-ai",
+    "storage_bucket": "skinsync-ai.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:17212459668:android:39e5ec9ffb158bc66cc281",
+        "android_client_info": {
+          "package_name": "com.skinsyncai"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCN7CDwNkBHvP9S1gGqOrM73RMTxE4onSA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

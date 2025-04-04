@@ -18,6 +18,7 @@ import {
   Face,
   runAsync,
   useFaceDetector,
+  //useFrameProcessor,
   FaceDetectionOptions
 } from 'react-native-vision-camera-face-detector'
 import { Worklets } from 'react-native-worklets-core'
@@ -32,7 +33,6 @@ export default function App() {
     classificationMode: 'all', // classification mode
     performanceMode: 'normal', // performance mode
     contourMode: 'all', // contour mode
-    // detection options
   } ).current
 
   const device = useCameraDevice('front')
@@ -44,25 +44,29 @@ export default function App() {
     })()
   }, [device])
 
-  const handleDetectedFaces = Worklets.createRunOnJS( (
-    faces
-  ) => { 
+  const handleDetectedFaces = Worklets.createRunOnJS( (faces) => { 
     console.log( 'faces detected', faces )
-    setFaces(faces);
   })
 
   const frameProcessor = useFrameProcessor((frame) => {
     'worklet'
-    //runAsync(frame, () => {
-      //'worklet'
+    runAsync(frame, () => {
+      'worklet'
       const faces = detectFaces(frame)
       // ... chain some asynchronous frame processor
       // ... do something asynchronously with frame
       handleDetectedFaces(faces)
-    //})
+    })
     // ... chain frame processors
     // ... do something with frame
   }, [handleDetectedFaces])
+
+  function handleFacesDetection(faces,frame) { 
+    console.log(
+      'faces', faces.length,
+      'frame', frame.toString()
+    )
+  }
 
   const renderBoundingBoxes = () => {
     return faces.map((face, index) => {
@@ -90,21 +94,15 @@ export default function App() {
 
   return (
     <View style={{ flex: 1 }}>
-      {!!device? 
-      <View>
-      <Camera
-        style={styles.camera}
-        device={device}
-        isActive={true}
-        //frameProcessor={frameProcessor}
-        //frameProcessorFps={5}
-      />
-       {renderBoundingBoxes()}
-      </View>
-       : <Text>
-        No Device
-      </Text>}
-    </View>
+    {!!device? <Camera
+      style={StyleSheet.absoluteFill}
+      device={device}
+      isActive={true}
+      frameProcessor={frameProcessor}
+    /> : <Text>
+      No Device
+    </Text>}
+  </View>
   )
 }
 const styles = StyleSheet.create({
