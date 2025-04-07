@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">SkinSyncAI</string>
+      <string name="com.crashlytics.android.build_id">1</string>
 </resources>
+

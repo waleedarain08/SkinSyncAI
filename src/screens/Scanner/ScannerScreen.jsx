@@ -12,11 +12,12 @@ import {
 import {
   Camera,
   useCameraDevice,
-  useFrameProcessor
+  useFrameProcessor,
+  runAsync
 } from 'react-native-vision-camera'
 import { 
   Face,
-  runAsync,
+  //runAsync,
   useFaceDetector,
   //useFrameProcessor,
   FaceDetectionOptions
