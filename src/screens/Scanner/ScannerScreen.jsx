@@ -5,6 +5,8 @@ import {
   useWindowDimensions,
   Alert,
   SafeAreaView,
+  TouchableOpacity,
+  Image
 } from 'react-native';
 import React, {useEffect, useState, useRef} from 'react';
 import {
@@ -15,20 +17,28 @@ import {
 import {useFaceDetector,FaceDetectionOptions} from 'react-native-vision-camera-face-detector';
 import {Worklets} from 'react-native-worklets-core';
 import {Colors} from '../../utils/Colors';
+import ImagePicker from 'react-native-image-crop-picker';
+import { runOnJS } from 'react-native-reanimated';
+
+
 
 const FaceDetection = () => {
   const [faces, setFaces] = useState([]);
+  const [isFaceDetected, setIsFaceDetected] = useState(false);
   const [cameraPermission, setCameraPermission] = useState(null);
   const [isPermissionGranted, setIsPermissionGranted] = useState(false);
   const [alertShown, setAlertShown] = useState(false); // To prevent multiple alerts
   const device = useCameraDevice('front');
   const {width: screenWidth, height: screenHeight} = useWindowDimensions();
+  const [showCamera, setShowCamera] = useState(true);
+  const [imageSource, setImageSource] = useState('');
   const faceDetectionOptions = useRef( {
-    landmarkMode:'all',
-    classificationMode:'all',
-    contourMode:'all',
-    autoMode:true
+    //landmarkMode:'all',
+    //classificationMode:'all',
+    //contourMode:'all',
+    //autoMode:true
   } ).current
+  const camera = useRef(null);
 
   const {detectFaces} = useFaceDetector();
 
@@ -65,56 +75,96 @@ const FaceDetection = () => {
   }, []);
 
   const handleDetectFace = Worklets.createRunOnJS(faces => {
-   // if(faces.length>0){
-      setFaces(faces);
-      console.log('Detected faces:', faces);
-   // }
+    if (!isFaceDetected) {
+      if(faces.length>0){
+        runOnJS(setFaces)(faces);
+        console.log('Detected faces:', faces);
+        capturePhoto(faces[0]);
+        runOnJS(setIsFaceDetected)(true);
+      }
+    }
   });
 
   const frameProcessor = useFrameProcessor(frame => {
     'worklet';
     try {
+      if (!isFaceDetected) {
       const detectedFaces = detectFaces(frame);
       handleDetectFace(detectedFaces);
+      }
     } catch (error) {
       console.error('Face detection error:', error);
     }
-  }, []);
+  }, [isFaceDetected]);
 
-  const isFaceInBoundingBox = face => {
-    // Check if the face is within the bounding box
-    const scaleX = cameraWidth / actualCameraWidth;
-    const scaleY = cameraHeight / actualCameraHeight;
-
-    const x = face.bounds.x * scaleX;
-    const y = face.bounds.y * scaleY;
-    const width = face.bounds.width * scaleX;
-    const height = face.bounds.height * scaleY;
-
-    return (
-      x >= boundingBox.x &&
-      y >= boundingBox.y &&
-      x + width <= boundingBox.x + boundingBox.width &&
-      y + height <= boundingBox.y + boundingBox.height
-    );
-  };
-
-  const checkForAlert = () => {
-    if (!alertShown) {
-      setAlertShown(true);
-      Alert.alert('Face detected');
+  const capturePhoto = async (face) => {
+    if (camera.current !== null) {
+      const photo = await camera.current.takePhoto({});
+      if (photo?.path != "") {
+        const croppedFace = await cropFaceFromImage(photo.path, face.bounds);       
+      } 
     }
   };
+
+  const cropFaceFromImage = async (imagePath, bounds) => {
+    await ImagePicker.openCropper({
+      path: 'file:///' + imagePath,
+      width: bounds.width,
+      height: bounds.height,
+      cropperCircleOverlay: false,
+      cropperActiveWidgetColor: '#424242',
+      cropping: true,
+      cropperToolbarTitle: 'Crop Face',
+    }).then(image => {
+      console.log('Cropped image:', image);
+      setImageSource(image.path);
+      setShowCamera(false);
+      //return(image);
+    });
+  };
+
+  retake = () => {
+    setIsFaceDetected(false);
+    setShowCamera(true);
+  }
+
+  // const isFaceInBoundingBox = face => {
+  //   const scaleX = cameraWidth / actualCameraWidth;
+  //   const scaleY = cameraHeight / actualCameraHeight;
+
+  //   const x = face.bounds.x * scaleX;
+  //   const y = face.bounds.y * scaleY;
+  //   const width = face.bounds.width * scaleX;
+  //   const height = face.bounds.height * scaleY;
+
+  //   return (
+  //     x >= boundingBox.x &&
+  //     y >= boundingBox.y &&
+  //     x + width <= boundingBox.x + boundingBox.width &&
+  //     y + height <= boundingBox.y + boundingBox.height
+  //   );
+  // };
+
+  // const checkForAlert = () => {
+  //   if (!alertShown) {
+  //     setAlertShown(true);
+  //     Alert.alert('Face detected');
+  //   }
+  // };
 
   return (
     <SafeAreaView style={styles.container}>
       {isPermissionGranted && device ? (
+        showCamera ? (
         <View>
           <Camera
             style={{width: screenWidth, height: screenHeight}}
             device={device}
-            isActive={true}
+            isActive={showCamera}
             frameProcessor={frameProcessor}
+            frameProcessorFps={5}
+            ref={camera}
+            photo={true}
           />
 
           {faces.length>0?
@@ -127,13 +177,59 @@ const FaceDetection = () => {
                 top: face.bounds.y,
                 left: face.bounds.x,
                 width: face.bounds.width,
-                height: face.bounds.height+100,
+                height: face.bounds.height,
               },
             ]}>
             <Text style={{color:"#fff", fontSize:18}}>Face Detected</Text>
           </View>
         )):<View style={styles.nofaceBox}><Text style={{color:"#fff", fontSize:14}}>No Face Detected</Text></View>}
-        </View>
+        </View>) : (
+          <>
+          {imageSource !== '' ? (
+            <Image
+              style={styles.image}
+              source={{
+                uri: `file://'${imageSource}`,
+              }}
+            />
+          ) : null}
+
+          <View style={styles.buttonContainer}>
+            <View style={styles.buttons}>
+              <TouchableOpacity
+                style={{
+                  backgroundColor: '#fff',
+                  padding: 10,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  borderRadius: 10,
+                  borderWidth: 2,
+                  borderColor: '#77c3ec',
+                }}
+                onPress={() => retake()}>
+                <Text style={{color: '#77c3ec', fontWeight: '500'}}>
+                  Retake
+                </Text>
+              </TouchableOpacity>
+              {/* <TouchableOpacity
+                style={{
+                  backgroundColor: '#77c3ec',
+                  padding: 10,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  borderRadius: 10,
+                  borderWidth: 2,
+                  borderColor: 'white',
+                }}
+                onPress={() => setShowCamera(true)}>
+                <Text style={{color: 'white', fontWeight: '500'}}>
+                  Use Photo
+                </Text>
+              </TouchableOpacity> */}
+            </View>
+          </View>
+        </>
+        )
          
       ) : (
         <View style={styles.centeredView}>
@@ -198,6 +294,47 @@ const styles = StyleSheet.create({
     left:100,
     justifyContent:'center',
     alignItems:'center'
+  },
+  button: {
+    backgroundColor: 'gray',
+  },
+  backButton: {
+    backgroundColor: 'rgba(0,0,0,0.0)',
+    position: 'absolute',
+    justifyContent: 'center',
+    width: '100%',
+    top: 0,
+    padding: 20,
+  },
+  buttonContainer: {
+    backgroundColor: 'rgba(0,0,0,0.2)',
+    position: 'absolute',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    bottom: 0,
+    padding: 20,
+  },
+  buttons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  camButton: {
+    height: 80,
+    width: 80,
+    borderRadius: 40,
+    //ADD backgroundColor COLOR GREY
+    backgroundColor: '#B2BEB5',
+
+    alignSelf: 'center',
+    borderWidth: 4,
+    borderColor: 'white',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+    aspectRatio: 9 / 16,
   },
 });
 
