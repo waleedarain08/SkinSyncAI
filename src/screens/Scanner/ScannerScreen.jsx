@@ -19,6 +19,8 @@ import {Worklets} from 'react-native-worklets-core';
 import {Colors} from '../../utils/Colors';
 import ImagePicker from 'react-native-image-crop-picker';
 import { runOnJS } from 'react-native-reanimated';
+import { Canvas, Circle, Group, Paint, Path, Skia } from '@shopify/react-native-skia';
+
 
 
 
@@ -32,15 +34,17 @@ const FaceDetection = () => {
   const {width: screenWidth, height: screenHeight} = useWindowDimensions();
   const [showCamera, setShowCamera] = useState(true);
   const [imageSource, setImageSource] = useState('');
+  const [landmarks, setLandmarks] = useState([]);
+
   const faceDetectionOptions = useRef( {
-    //landmarkMode:'all',
-    //classificationMode:'all',
+    landmarkMode:'all',
+    classificationMode:'all',
     //contourMode:'all',
-    //autoMode:true
+    autoMode:true
   } ).current
   const camera = useRef(null);
 
-  const {detectFaces} = useFaceDetector();
+  const {detectFaces} = useFaceDetector(faceDetectionOptions);
 
   // Define fixed camera frame size
   const cameraWidth = 360;
@@ -74,15 +78,21 @@ const FaceDetection = () => {
     requestPermission();
   }, []);
 
+  const objectToArray = (obj) => {
+    return Object.values(obj).filter((pt) => pt && typeof pt.x === 'number');
+  };
+
   const handleDetectFace = Worklets.createRunOnJS(faces => {
-    if (!isFaceDetected) {
+   // if (!isFaceDetected) {
       if(faces.length>0){
         runOnJS(setFaces)(faces);
-        console.log('Detected faces:', faces);
-        capturePhoto(faces[0]);
-        runOnJS(setIsFaceDetected)(true);
+        console.log('Detected faces landmarks:', faces[0]);
+        //runOnJS(setLandmarks)(faces[0].landmarks);
+        setLandmarks(objectToArray(faces[0].landmarks));
+       // capturePhoto(faces[0]);
+       /// runOnJS(setIsFaceDetected)(true);
       }
-    }
+    //}
   });
 
   const frameProcessor = useFrameProcessor(frame => {
@@ -123,10 +133,22 @@ const FaceDetection = () => {
     });
   };
 
-  retake = () => {
+  const retake = () => {
     setIsFaceDetected(false);
     setShowCamera(true);
   }
+
+  const paintRed = Skia.Paint();
+  paintRed.setColor(Skia.Color('rgba(255,0,100,0.5)')); // Lip tint
+
+  const paintPurple = Skia.Paint();
+  paintPurple.setColor(Skia.Color('rgba(150,0,255,0.4)')); // Eyeshadow
+
+  const highlightPaint = (() => {
+    const p = Skia.Paint();
+    p.setColor(Skia.Color('rgba(0,255,255,0.5)')); // Cyan glow for highlight
+    return p;
+  }, []);
 
   // const isFaceInBoundingBox = face => {
   //   const scaleX = cameraWidth / actualCameraWidth;
@@ -156,9 +178,9 @@ const FaceDetection = () => {
     <SafeAreaView style={styles.container}>
       {isPermissionGranted && device ? (
         showCamera ? (
-        <View>
+        <>
           <Camera
-            style={{width: screenWidth, height: screenHeight}}
+            style={StyleSheet.absoluteFill}
             device={device}
             isActive={showCamera}
             frameProcessor={frameProcessor}
@@ -166,24 +188,41 @@ const FaceDetection = () => {
             ref={camera}
             photo={true}
           />
+          <Canvas style={StyleSheet.absoluteFill}>
+            <Group>
+              {landmarks.map((pt, idx) => (
+                <Circle key={idx} cx={pt.x} cy={pt.y} r={5} paint={highlightPaint} />
+              ))}
+            </Group>
+          </Canvas>
 
-          {faces.length>0?
-           faces.map((face, index) => (
-          <View
-            key={index}
-            style={[
-              styles.faceBox,
-              {
-                top: face.bounds.y,
-                left: face.bounds.x,
-                width: face.bounds.width,
-                height: face.bounds.height,
-              },
-            ]}>
-            <Text style={{color:"#fff", fontSize:18}}>Face Detected</Text>
-          </View>
-        )):<View style={styles.nofaceBox}><Text style={{color:"#fff", fontSize:14}}>No Face Detected</Text></View>}
-        </View>) : (
+          {/* 
+          {faces.length > 0 ? (
+            faces.map((face, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.faceBox,
+                  {
+                    top: face.bounds.y,
+                    left: face.bounds.x,
+                    width: face.bounds.width,
+                    height: face.bounds.height,
+                  },
+                ]}
+              >
+                <Text style={{ color: "#fff", fontSize: 18 }}>Face Detected</Text>
+              </View>
+            ))
+          ) : (
+            <View style={styles.nofaceBox}>
+              <Text style={{ color: "#fff", fontSize: 14 }}>No Face Detected</Text>
+            </View>
+          )} 
+          */}
+        </>) 
+        
+        : (
           <>
           {imageSource !== '' ? (
             <Image
@@ -247,9 +286,9 @@ const FaceDetection = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
-    alignItems: 'center',
-    justifyContent: 'center',
+    //backgroundColor: '#000',
+   // alignItems: 'center',
+   // justifyContent: 'center',
   },
   cameraContainer: {
     overflow: 'hidden',
