@@ -51,7 +51,7 @@ const SavedTreatmentsScreen = ({navigation}) => {
               <Forward size={18} />
             </View>
           </View>
-          <ScrollView horizontal contentContainerStyle={{gap: 15}}>
+          <ScrollView horizontal contentContainerStyle={{gap: 15}} showsHorizontalScrollIndicator={false}>
             <TreatmentCard check={true} title="Treatment Name" />
             <TreatmentCard
               title="Treatment Name"
@@ -72,7 +72,7 @@ const SavedTreatmentsScreen = ({navigation}) => {
               <Forward size={18} />
             </View>
           </View>
-          <ScrollView horizontal contentContainerStyle={{gap: 15}}>
+          <ScrollView horizontal contentContainerStyle={{gap: 15}} showsHorizontalScrollIndicator={false}>
             <ClinicCard check={true} title="Treatment Name" checkFire={true} />
             <ClinicCard
               image={require('../../assets/images/clinicImage2.png')}
@@ -102,13 +102,14 @@ const SavedTreatmentsScreen = ({navigation}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 30,
     backgroundColor: Colors.white,
+    paddingTop: Platform.OS === "android"
+    ? StatusBar.currentHeight
+    : 0,
   },
   headercontainer: {
     flex: 1,
     backgroundColor: Colors.white,
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight + 10 : 0,
   },
   backContainer: {
     height: 44,
@@ -136,6 +137,7 @@ const styles = StyleSheet.create({
   },
   bodyContainer: {
     paddingHorizontal: 30,
+    paddingBottom:30,
   },
   nextAppoinment: {
     flexDirection: 'row',

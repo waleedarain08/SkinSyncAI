@@ -43,8 +43,7 @@ const styles = StyleSheet.create({
   },
   image: {
     width: 156,
-    height: 200,
-    marginTop: 50,
+    height: '100%',
     resizeMode: 'contain',
   },
   title: {
@@ -58,7 +57,7 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     padding: 6,
     position: 'absolute',
-    bottom: 50,
+    bottom: '7%',
     right: 0,
     flex: 1,
   },

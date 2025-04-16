@@ -1,6 +1,8 @@
 import {
+  Platform,
   SafeAreaView,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -98,6 +100,7 @@ const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
     backgroundColor: Colors.white,
+     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight  : 0,
   },
   heading: {
     fontSize: 30,

@@ -8,6 +8,8 @@ import {
   ScrollView,
   Modal,
   SafeAreaView,
+  Platform,
+  StatusBar,
 } from 'react-native';
 import {Back, Clip} from '../../icons';
 import {Colors} from '../../utils/Colors';
@@ -43,10 +45,17 @@ const ReadyAppointmentScreen = ({navigation}) => {
   ];
 
   return (
-    <SafeAreaView style={{flex: 1, backgroundColor: Colors.white}}>
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: Colors.white,
+        paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+      }}>
       <ScrollView style={styles.container}>
         {/* Header */}
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}>
           <Back size={20} />
         </TouchableOpacity>
 

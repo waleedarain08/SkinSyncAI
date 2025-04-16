@@ -71,6 +71,7 @@ const ProgressScreen = () => {
             title="Laser Treatment - Cheeks"
             percent="57"
             time="4 Days"
+            mainStyle={{marginBottom: 50}}
           />
         </View>
       </SafeAreaView>

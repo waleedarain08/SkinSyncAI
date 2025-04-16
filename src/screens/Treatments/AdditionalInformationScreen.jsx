@@ -1,6 +1,8 @@
 import {
+  Platform,
   SafeAreaView,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
@@ -16,7 +18,12 @@ const AdditionalInformationScreen = ({navigation}) => {
   const [choice, setSelectedChoice] = useState('no');
   const [medications, setMedications] = useState('');
   return (
-    <SafeAreaView style={{flex: 1, backgroundColor: Colors.white}}>
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: Colors.white,
+        paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+      }}>
       {/* Header */}
       <Text style={styles.heading}>
         Please provide the additional information needed to send to your
