@@ -99,7 +99,7 @@ const ARModalFaceScreen = ({navigation}) => {
           </TouchableOpacity>
         </ScrollView>
       </View>
-      <View style={{paddingHorizontal: 30, marginBottom: 25}}>
+      <View style={{paddingHorizontal: 20, marginBottom: 25}}>
         <Text style={styles.areaTxt}>Area Selection</Text>
         <DropDownPicker
           open={openMedicationConcern}
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.anotherPink,
     borderRadius: 10,
-    marginHorizontal: 27,
+    marginHorizontal: 20,
   },
   image: {
     width: 250,
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
   },
   accuracyContainer: {
     marginVertical: 18,
-    paddingHorizontal: 30,
+    paddingHorizontal: 20,
   },
   accuracyText: {
     fontFamily: FontFamily.semiBold,
@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 30,
+    paddingHorizontal: 20,
     paddingVertical: 15,
     borderTopWidth: 1,
     borderTopColor: Colors.lightBorderColor,
@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
   updateButton: {
     backgroundColor: '#000',
     paddingVertical: 10,
-    paddingHorizontal: 25,
+    paddingHorizontal: 20,
     borderRadius: 25,
   },
   updateText: {
@@ -243,13 +243,12 @@ const styles = StyleSheet.create({
 
   safeContainer: {
     flex: 1,
-    paddingHorizontal: 30,
     backgroundColor: Colors.white,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   headercontainer: {
     flex: 1,
     backgroundColor: Colors.white,
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight + 10 : 0,
   },
   backContainer: {
     height: 44,
@@ -281,14 +280,14 @@ const styles = StyleSheet.create({
   afterTxt: {
     position: 'absolute',
     top: 22,
-    left: -20,
+    left: -40,
     fontSize: 20,
     fontFamily: FontFamily.semiBold,
   },
   maskBack: {
     position: 'absolute',
     top: 22,
-    right: -20,
+    right: -40,
     backgroundColor: Colors.white,
     justifyContent: 'center',
     alignItems: 'center',
@@ -324,7 +323,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   btnMain: {
-    paddingHorizontal: 30,
+    paddingHorizontal: 20,
     height: 44,
   },
   btnText: {
@@ -338,7 +337,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 30,
   },
   sliderSection: {
-    paddingHorizontal: 30,
+    paddingHorizontal: 20,
   },
   scrollStyle: {
     marginBottom: 18,

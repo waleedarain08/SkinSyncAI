@@ -79,8 +79,9 @@ export default SettingScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 30,
+    paddingHorizontal: 15,
     backgroundColor: Colors.white,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight  : 0,
   },
   settingRow: {
     flexDirection: 'row',
@@ -100,7 +101,7 @@ const styles = StyleSheet.create({
   headercontainer: {
     flex: 1,
     backgroundColor: Colors.white,
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight + 10 : 0,
+
   },
   backContainer: {
     height: 44,

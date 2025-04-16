@@ -101,14 +101,14 @@ const HorizontalCalendarTime = ({appointments = []}) => {
       </ScrollView>
 
       {/* Time Picker Modal */}
-      {/* {showTimePicker && ( */}
-      <DateTimePicker
-        value={selectedTime}
-        mode="time"
-        display="spinner"
-        onChange={onTimeChange}
-      />
-      {/* )} */}
+      {showTimePicker && (
+        <DateTimePicker
+          value={selectedTime}
+          mode="time"
+          display="spinner"
+          onChange={onTimeChange}
+        />
+      )}
     </View>
   );
 };

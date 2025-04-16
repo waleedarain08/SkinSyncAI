@@ -56,7 +56,7 @@ const ScanYourFaceScreen = ({navigation}) => {
         {/* Button */}
         <Button
           title={'Scan Your Face'}
-          onPress={() => navigation.navigate('ScannerScreen')}
+          onPress={() => navigation.navigate('Scanner')}
           style={{width: '100%', marginBottom: 20}}
         />
 
@@ -77,13 +77,12 @@ const InstructionRow = ({icon, text}) => (
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 30,
     backgroundColor: Colors.white,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   headercontainer: {
     flex: 1,
     backgroundColor: Colors.white,
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight + 10 : 0,
   },
   backContainer: {
     height: 44,

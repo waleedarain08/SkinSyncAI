@@ -272,7 +272,7 @@ const TreatmentsScreen = ({navigation}) => {
                       <Forward size={18} />
                     </TouchableOpacity>
                   </View>
-                  <ScrollView contentContainerStyle={{gap: 15}} horizontal>
+                  <ScrollView contentContainerStyle={{gap: 15}} horizontal showsHorizontalScrollIndicator={false}>
                     <TreatmentCard
                       image={require('../../assets/images/glasses2.png')}
                     />
@@ -299,7 +299,7 @@ const TreatmentsScreen = ({navigation}) => {
                       <Forward size={18} />
                     </TouchableOpacity>
                   </View>
-                  <ScrollView contentContainerStyle={{gap: 15}} horizontal>
+                  <ScrollView contentContainerStyle={{gap: 15}} horizontal showsHorizontalScrollIndicator={false}>
                     <TreatmentCard
                       title="Treatment Name"
                       image={require('../../assets/images/injection1.png')}
@@ -325,7 +325,7 @@ const TreatmentsScreen = ({navigation}) => {
                       <Forward size={18} />
                     </TouchableOpacity>
                   </View>
-                  <ScrollView contentContainerStyle={{gap: 15}} horizontal>
+                  <ScrollView contentContainerStyle={{gap: 15}} horizontal showsHorizontalScrollIndicator={false}>
                     <TreatmentCard
                       title="Treatment Name"
                       image={require('../../assets/images/light1.png')}
@@ -353,7 +353,7 @@ const TreatmentsScreen = ({navigation}) => {
                       <Forward size={18} />
                     </TouchableOpacity>
                   </View>
-                  <ScrollView contentContainerStyle={{gap: 15}} horizontal>
+                  <ScrollView contentContainerStyle={{gap: 15}} horizontal showsHorizontalScrollIndicator={false}>
                     <TreatmentCard
                       title="Treatment Name"
                       image={require('../../assets/images/scan1.png')}
@@ -381,7 +381,7 @@ const TreatmentsScreen = ({navigation}) => {
                       <Forward size={18} />
                     </TouchableOpacity>
                   </View>
-                  <ScrollView contentContainerStyle={{gap: 15}} horizontal>
+                  <ScrollView contentContainerStyle={{gap: 15}} horizontal showsHorizontalScrollIndicator={false}>
                     <TreatmentCard
                       title="Treatment Name"
                       image={require('../../assets/images/message1.png')}

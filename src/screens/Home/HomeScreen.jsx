@@ -17,7 +17,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import {Circle} from 'react-native-progress';
 import TreatmentCard from '../../components/TreatmentCard';
 import DiscountCard from '../../components/DicountCard';
-import { useNavigation } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 
 const HomeScreen = () => {
   const navigation = useNavigation();
@@ -32,7 +32,9 @@ const HomeScreen = () => {
               Your journey to radiant skin starts now.
             </Text>
           </View>
-          <TouchableOpacity style={styles.bellBack} onPress={()=>navigation.navigate('notification')}>
+          <TouchableOpacity
+            style={styles.bellBack}
+            onPress={() => navigation.navigate('notification')}>
             <Bell size={21} />
           </TouchableOpacity>
         </View>
@@ -76,7 +78,10 @@ const HomeScreen = () => {
                 <Forward size={18} />
               </View>
             </View>
-            <ScrollView horizontal contentContainerStyle={{gap: 15}}>
+            <ScrollView
+              horizontal
+              contentContainerStyle={{gap: 15}}
+              showsHorizontalScrollIndicator={false}>
               <TreatmentCard />
               <TreatmentCard
                 title="Glow Dermal Infusion"
@@ -97,7 +102,10 @@ const HomeScreen = () => {
                 <Forward size={18} />
               </View>
             </View>
-            <ScrollView horizontal contentContainerStyle={{gap: 15}}>
+            <ScrollView
+              horizontal
+              contentContainerStyle={{gap: 15}}
+              showsHorizontalScrollIndicator={false}>
               <DiscountCard />
               <DiscountCard
                 title="Aurora Laser Therapy"
