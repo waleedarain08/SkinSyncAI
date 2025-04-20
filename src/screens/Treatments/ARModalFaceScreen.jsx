@@ -9,16 +9,21 @@ import {
   StatusBar,
   SafeAreaView,
   ScrollView,
+  Dimensions,
 } from 'react-native';
+// import {ViroARSceneNavigator} from '@reactvision/react-viro';
 import Slider from 'react-native-sliders';
 import {FontFamily} from '../../utils/Fonts';
 import {Colors} from '../../utils/Colors';
 import {Back} from '../../icons';
 import DropDownPicker from 'react-native-dropdown-picker';
 import Button from '../../components/Button';
+// import ARScene from './ARScene';
 
-const ARModalFaceScreen = ({navigation}) => {
+const ARModalFaceScreen = ({navigation, route}) => {
+  const {photoPath} = route.params;
   const [syringes, setSyringes] = useState(1);
+  const [isARView, setIsARView] = useState(false);
   const [openMedicationConcern, setOpenMedicationConcern] = useState(false);
   const [medicationConcern, setMedicationConcern] = useState(null);
   const [medicationConcernItems, setMedicationConcernItems] = useState([
@@ -26,6 +31,10 @@ const ARModalFaceScreen = ({navigation}) => {
     {label: 'Aging', value: 'aging'},
     {label: 'Sensitivity', value: 'sensitivity'},
   ]);
+
+  const toggleARView = () => {
+    setIsARView(!isARView);
+  };
 
   return (
     <SafeAreaView style={styles.safeContainer}>
@@ -37,25 +46,41 @@ const ARModalFaceScreen = ({navigation}) => {
         </TouchableOpacity>
         <Text style={styles.headerTxt}>AR Face Model Preview</Text>
       </View>
-      <View style={styles.imageContainer}>
-        <View>
-          <Image
-            source={require('../../assets/images/modelView.png')}
-            style={styles.image}
-          />
-          <Text style={styles.afterTxt}>After</Text>
-          <View style={styles.maskBack}>
-            <Image
-              source={require('../../assets/images/maskIcon.png')}
-              style={styles.maskImg}
-            />
-          </View>
+
+      {isARView ? (
+        <View style={styles.arContainer}>
+          {/* <ViroARSceneNavigator
+            autofocus={true}
+            initialScene={{
+              scene: () => <ARScene photoPath={photoPath} syringes={syringes} />,
+            }}
+            style={styles.arView}
+          /> */}
         </View>
-        <Text style={styles.overlayText}>
-          See How {syringes} Syringe{syringes > 1 ? 's' : ''} Will Look On Your
-          Under Eyes
-        </Text>
-      </View>
+      ) : (
+        <View style={styles.imageContainer}>
+          <View>
+            <Image
+              source={{uri: `file://${photoPath}`}}
+              style={styles.image}
+            />
+            <Text style={styles.afterTxt}>After</Text>
+            <TouchableOpacity 
+              onPress={toggleARView}
+              style={styles.maskBack}>
+              <Image
+                source={require('../../assets/images/maskIcon.png')}
+                style={styles.maskImg}
+              />
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.overlayText}>
+            See How {syringes} Syringe{syringes > 1 ? 's' : ''} Will Look On Your
+            Under Eyes
+          </Text>
+        </View>
+      )}
+
       <View style={styles.accuracyContainer}>
         <View style={styles.progressContainer}>
           <Image
@@ -172,7 +197,22 @@ const styles = StyleSheet.create({
   image: {
     width: 250,
     height: 250,
-    borderRadius: 10,
+    borderRadius: 130,
+  },
+  arImage: {
+    transform: [
+      { scale: 1.2 },
+      { rotate: '5deg' },
+      { perspective: 1000 }
+    ],
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+    elevation: 8,
   },
   overlayText: {
     position: 'absolute',
@@ -357,5 +397,19 @@ const styles = StyleSheet.create({
   syringeTxt: {
     fontSize: 14,
     fontFamily: FontFamily.medium,
+  },
+  arContainer: {
+    flex: 1,
+    height: Dimensions.get('window').height * 0.6,
+  },
+  arView: {
+    flex: 1,
+  },
+  arText: {
+    fontFamily: FontFamily.semiBold,
+    fontSize: 30,
+    color: Colors.white,
+    textAlign: 'center',
+    textAlignVertical: 'center',
   },
 });
