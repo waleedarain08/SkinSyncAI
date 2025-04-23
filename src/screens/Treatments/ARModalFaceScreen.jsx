@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useRef} from 'react';
 import {
   View,
   Text,
@@ -9,8 +9,7 @@ import {
   StatusBar,
   SafeAreaView,
   ScrollView,
-  Dimensions,
-  ActivityIndicator,
+  Animated,
 } from 'react-native';
 import Slider from 'react-native-sliders';
 import {FontFamily} from '../../utils/Fonts';
@@ -18,12 +17,17 @@ import {Colors} from '../../utils/Colors';
 import {Back} from '../../icons';
 import DropDownPicker from 'react-native-dropdown-picker';
 import Button from '../../components/Button';
-import {analyzeFace} from '../../services/faceApi';
-import ImgToBase64 from 'react-native-image-base64';
-import Svg, {Circle} from 'react-native-svg';
+import {
+  ColorMatrix,
+  concatColorMatrices,
+  brightness,
+  contrast,
+  saturate,
+  sepia,
+} from 'react-native-color-matrix-image-filters';
 
 const ARModalFaceScreen = ({navigation, route}) => {
-  const {photoPath} = route.params ;
+  const {photoPath} = route.params;
   const [syringes, setSyringes] = useState(1);
   const [openMedicationConcern, setOpenMedicationConcern] = useState(false);
   const [medicationConcern, setMedicationConcern] = useState(null);
@@ -32,93 +36,67 @@ const ARModalFaceScreen = ({navigation, route}) => {
     {label: 'Aging', value: 'aging'},
     {label: 'Sensitivity', value: 'sensitivity'},
   ]);
-  const [faceData, setFaceData] = useState(null);
   const [selectedTreatment, setSelectedTreatment] = useState('Botox');
-  const [isLoading, setIsLoading] = useState(true);
   const [showAfter, setShowAfter] = useState(false);
   const [accuracy, setAccuracy] = useState(0);
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const scaleAnim = useRef(new Animated.Value(1)).current;
 
-  useEffect(() => {
-    analyzeFaceImage();
-  }, []);
+  const animateTransition = () => {
+    // Reset animations
+    fadeAnim.setValue(0);
+    scaleAnim.setValue(1);
 
-  const analyzeFaceImage = async () => {
-    try {
-      setIsLoading(true);
-      const formattedPath = photoPath.startsWith('file://')
-        ? photoPath
-        : `file://${photoPath}`;
-      const base64Image = await ImgToBase64.getBase64String(formattedPath);
-      const response = await analyzeFace(base64Image);
-      setFaceData(response);
-
-      const faceQuality =
-        response.faces[0]?.attributes?.facequality?.value || 0;
-      const blur = response.faces[0]?.attributes?.blur?.blurness?.value || 0;
-      const accuracyScore = Math.max(
-        0,
-        Math.min(100, (faceQuality - blur) * 20),
-      );
-      setAccuracy(accuracyScore);
-    } catch (error) {
-      console.error('Face analysis error:', error);
-    } finally {
-      setIsLoading(false);
-    }
+    // Start animations
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+      Animated.sequence([
+        Animated.timing(scaleAnim, {
+          toValue: 1.1,
+          duration: 250,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scaleAnim, {
+          toValue: 1,
+          duration: 250,
+          useNativeDriver: true,
+        }),
+      ]),
+    ]).start();
   };
 
-  const FaceOverlay = ({landmarks}) => {
-    if (!landmarks) return null;
-
-    // Get the face rectangle to calculate scaling
-    const faceRect = faceData?.faces[0]?.face_rectangle;
-    if (!faceRect) return null;
-
-    // Image dimensions
-    const imageWidth = 100;
-    const imageHeight = 100;
-
-    // Calculate scaling factors to fit the face in the image
-    const scaleX = imageWidth / faceRect.width;
-    const scaleY = imageHeight / faceRect.height;
-    
-    // Use the smaller scale to maintain aspect ratio
-    const scale = Math.min(scaleX, scaleY);
-
-    // Calculate the center of the face rectangle
-    const faceCenterX = faceRect.left + (faceRect.width / 2);
-    const faceCenterY = faceRect.top + (faceRect.height / 2);
-
-    // Calculate the center of the image
-    const imageCenterX = imageWidth / 2;
-    const imageCenterY = imageHeight / 2;
-
-    // Calculate the offset to center the face in the image
-    const offsetX = imageCenterX - (faceCenterX * scale);
-    const offsetY = imageCenterY - (faceCenterY * scale);
+  const getFilteredImage = () => {
+    const filterMatrix = concatColorMatrices(
+      brightness(1.15),
+      contrast(1.25),
+      saturate(1.35),
+      sepia(0.15),
+    );
 
     return (
-      <View style={styles.overlayContainer}>
-        <Svg height="100%" width="100%" style={styles.svgOverlay}>
-          {Object.entries(landmarks).map(([key, point]) => {
-            // Transform coordinates to center the face in the image
-            const x = (point.x * scale) + offsetX;
-            const y = (point.y * scale) + offsetY;
-            
-            return (
-              <Circle
-                key={key}
-                cx={x}
-                cy={y}
-                r="2"
-                fill={Colors.primary}
-                stroke={Colors.white}
-                strokeWidth="1"
-              />
-            );
-          })}
-        </Svg>
-      </View>
+      <Animated.View
+        style={[
+          styles.imageContainerInner,
+          {
+            opacity: fadeAnim,
+            transform: [{scale: scaleAnim}],
+          },
+        ]}>
+        <ColorMatrix matrix={filterMatrix}>
+          <Image
+            source={{
+              uri: photoPath.startsWith('file://')
+                ? photoPath
+                : `file://${photoPath}`,
+            }}
+            style={[styles.image, styles.arModel]}
+          />
+        </ColorMatrix>
+      </Animated.View>
     );
   };
 
@@ -145,7 +123,12 @@ const ARModalFaceScreen = ({navigation, route}) => {
             <Text style={styles.viewTxt}>{showAfter ? 'After' : 'Before'}</Text>
             <TouchableOpacity
               style={styles.maskBack}
-              onPress={() => setShowAfter(!showAfter)}>
+              onPress={() => {
+                setShowAfter(!showAfter);
+                if (!showAfter) {
+                  animateTransition();
+                }
+              }}>
               <Image
                 source={require('../../assets/images/maskIcon.png')}
                 style={styles.maskImg}
@@ -153,16 +136,17 @@ const ARModalFaceScreen = ({navigation, route}) => {
             </TouchableOpacity>
           </View>
           <View style={styles.imageContainerInner}>
-            <Image
-              source={{
-                uri: photoPath.startsWith('file://')
-                  ? photoPath
-                  : `file://${photoPath}`,
-              }}
-              style={[styles.image, showAfter && styles.arModel]}
-            />
-            {showAfter && faceData?.faces?.[0]?.landmark && (
-              <FaceOverlay landmarks={faceData.faces[0].landmark} />
+            {showAfter ? (
+              getFilteredImage()
+            ) : (
+              <Image
+                source={{
+                  uri: photoPath.startsWith('file://')
+                    ? photoPath
+                    : `file://${photoPath}`,
+                }}
+                style={styles.image}
+              />
             )}
           </View>
         </View>
@@ -315,7 +299,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.anotherPink,
     borderRadius: 10,
     marginHorizontal: 20,
-    height: 250,
+    height: 240,
     alignItems: 'center',
     justifyContent: 'center',
     width: '90%',
@@ -328,15 +312,25 @@ const styles = StyleSheet.create({
   },
   imageContainerInner: {
     position: 'relative',
-    width: 180,
-    height: 180,
+    width: 150,
+    height: 150,
     alignItems: 'center',
     justifyContent: 'center',
+    borderRadius: 15,
+    shadowColor: Colors.black,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 4,
+    marginBottom: 50,
   },
   image: {
-    width: 180,
-    height: 180,
-    borderRadius: 10,
+    width: 170,
+    height: 170,
+    borderRadius: 12,
     resizeMode: 'cover',
     alignSelf: 'center',
   },
