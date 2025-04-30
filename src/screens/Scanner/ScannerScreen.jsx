@@ -10,15 +10,17 @@ import {
 //import { runOnJS } from 'react-native-reanimated';
 import * as Animatable from 'react-native-animatable';
 import {Worklets} from 'react-native-worklets-core';
+import { Colors } from '../../utils/Colors';
 
 
-export default function FaceAngleCapture() {
+export default function FaceAngleCapture({navigation}) {
   const cameraRef = useRef(null);
   const [hasPermission, setHasPermission] = useState(false);
   const [captured, setCaptured] = useState({ front: null, left: null, right: null });
   const [countdown, setCountdown] = useState(null); // '3' → '2' → '1'
   const [currentAngle, setCurrentAngle] = useState(null);
   const [isCounting, setIsCounting] = useState(false);
+  const [frameProcessingEnabled, setFrameProcessingEnabled] = useState(true);
   const device = useCameraDevice('front');
 
 const {detectFaces} = useFaceDetector();
@@ -43,8 +45,8 @@ const {detectFaces} = useFaceDetector();
 
 
     const runStartCountdownFront = Worklets.createRunOnJS(() => startCountdown('front'));
-    const runStartCountdownLeft = Worklets.createRunOnJS(() => startCountdown('left'));
-    const runStartCountdownRight = Worklets.createRunOnJS(() => startCountdown('right'));
+   // const runStartCountdownLeft = Worklets.createRunOnJS(() => startCountdown('left'));
+   // const runStartCountdownRight = Worklets.createRunOnJS(() => startCountdown('right'));
   
     const startCountdown = (angle) => {
         if (isCounting || captured[angle]) return;
@@ -66,24 +68,26 @@ const {detectFaces} = useFaceDetector();
         }, 800);
       };
     
-
+  const runDisableFrameProcessing = Worklets.createRunOnJS(() => setFrameProcessingEnabled(false));   
   const frameProcessor = useFrameProcessor((frame) => {
     'worklet';
     
     const faces = detectFaces(frame);
-    if (faces.length === 0 || isCounting) return;
+    if (!frameProcessingEnabled || faces.length === 0 || isCounting) return;
 
     const face = faces[0];
     const yaw = face.yawAngle;
-
+    console.log('Yawwwwwwwwww:', yaw);
     if (!captured.front && yaw > -10 && yaw < 10) {
+        runDisableFrameProcessing(); // ✅ safely disables JS-side state
         runStartCountdownFront();
-      } else if (!captured.left && yaw > 15) {
-        runStartCountdownLeft();
-      } else if (!captured.right && yaw < -15) {
-        runStartCountdownRight();
-      }
-  }, [captured, isCounting]);
+    }
+    //   else if (!captured.left && yaw > 15) {
+    //     runStartCountdownLeft();
+    //   } else if (!captured.right && yaw < -15) {
+    //     runStartCountdownRight();
+    //   }
+  }, [captured, isCounting,frameProcessingEnabled]);
 
    
   
@@ -94,11 +98,12 @@ const {detectFaces} = useFaceDetector();
     if (!cameraRef.current || captured[angle]) return;
 
     try {
-      const photo = await cameraRef.current.takePhoto();
+      const photo = await cameraRef.current.takePhoto({qualityPrioritization: 'balanced',
+        skipMetadata: false});
       setCaptured((prev) => ({ ...prev, [angle]: photo.path }));
 
-      if (angle === 'right') {
-        Alert.alert('Success!', 'All three face angles captured!');
+      if (angle === 'front') {
+        //Alert.alert('Success!', 'Face Captrued Successfully');
       }
     } catch (err) {
       console.warn('Capture error:', err);
@@ -106,6 +111,7 @@ const {detectFaces} = useFaceDetector();
   };
 
   const resetCapture = () => {
+    setFrameProcessingEnabled(true);
     setCaptured({ front: null, left: null, right: null });
     setCountdown(null);
     setIsCounting(false);
@@ -129,33 +135,33 @@ const {detectFaces} = useFaceDetector();
         isActive={true}
         photo={true}
         frameProcessor={frameProcessor}
-        pixelFormat="yuv"
+        //pixelFormat="yuv"
       />
 
-      <Animatable.View animation="fadeInDown" delay={200} style={styles.instructions}>
-        <Text style={styles.instructionText}>🧍 Look: Front → Left → Right</Text>
-        <Text style={styles.instructionText}>Face will auto-capture after countdown</Text>
+      <Animatable.View animation="fadeInDown" delay={1000} style={styles.instructions}>
+        <Text style={styles.instructionText}>🧍 Look at the center of screen</Text>
+        <Text style={styles.instructionText}>Detected face will auto-capture after countdown.</Text>
       </Animatable.View>
 
       <View style={styles.progressContainer}>
-        {['front', 'left', 'right'].map((angle) => (
+        {['front'].map((angle) => (
           <Animatable.View
             key={angle}
             animation={captured[angle] ? 'pulse' : undefined}
             iterationCount="infinite"
-            duration={captured[angle] ? 1000 : 0}
+            duration={captured[angle] ? 700 : 0}
             style={[
               styles.progressDot,
               { backgroundColor: captured[angle] ? '#4CAF50' : '#999' },
             ]}
           >
-            <Text style={styles.progressLabel}>{angle.charAt(0).toUpperCase()}</Text>
+            <Text style={styles.progressLabel}>{captured[angle] ?'Face Detected':'Detecting Face'}</Text>
           </Animatable.View>
         ))}
       </View>
 
       <View style={styles.thumbnails}>
-        {['front', 'left', 'right'].map((angle) =>
+        {['front'].map((angle) =>
           captured[angle] ? (
             <Animatable.Image
               animation="fadeIn"
@@ -166,7 +172,7 @@ const {detectFaces} = useFaceDetector();
             />
           ) : (
             <View key={angle} style={[styles.thumbnail, styles.placeholder]}>
-              <Text style={styles.placeholderText}>{angle.toUpperCase()}</Text>
+              <Text style={styles.placeholderText}>Captured Image</Text>
             </View>
           )
         )}
@@ -182,10 +188,17 @@ const {detectFaces} = useFaceDetector();
           {countdown}
         </Animatable.Text>
       )}
-
+      <View style={{flexDirection:'row',justifyContent:'space-around',alignItems:'center'}}>
+       <TouchableOpacity style={styles.resetButton} onPress={() => {navigation.goBack()}}>
+        <Text style={styles.resetText}>Exit</Text>
+      </TouchableOpacity>  
       <TouchableOpacity style={styles.resetButton} onPress={resetCapture}>
-        <Text style={styles.resetText}>🔄 Re-capture</Text>
+        <Text style={styles.resetText}>🔄 Re-Capture</Text>
       </TouchableOpacity>
+      <TouchableOpacity style={styles.resetButton} onPress={() => {navigation.navigate('ARModalFace',{photoPath:captured['front']})}}>
+        <Text style={styles.resetText}>Next</Text>
+      </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -213,9 +226,9 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   progressDot: {
-    width: 32,
+    width: 120,
     height: 32,
-    borderRadius: 16,
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
     marginHorizontal: 5,
@@ -230,18 +243,24 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     padding: 15,
     backgroundColor: '#111',
+    height: 220,
+    resizeMode: 'contain',
   },
   thumbnail: {
-    width: 100,
-    height: 100,
+    //width: 100,
+    //height: 100,
     borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flex:1
   },
   placeholder: {
-    backgroundColor: '#333',
+    backgroundColor: Colors.glowSkin,
+    //opacity: 0.9,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  placeholderText: { color: 'white', fontWeight: 'bold' },
+  placeholderText: { color: '#fff', fontWeight: 'bold' },
   countdownText: {
     position: 'absolute',
     top: '40%',
