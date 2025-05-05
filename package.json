@@ -8,7 +8,7 @@
     "ios-device": "react-native run-ios --device",
     "ios-clean": "cd ios && pod deintegrate && pod cache clean --all && cd ..",
     "lint": "eslint .",
-    "start": "react-native start",
+    "start": "node init && react-native start",
     "test": "jest",
     "clean": "cd android && ./gradlew clean && cd ..",
     "pod": "cd ios && pod install && cd .."
