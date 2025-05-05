@@ -226,18 +226,18 @@ const TreatmentsScreen = ({navigation}) => {
                     source={require('../../assets/images/skinCare.png')}
                     style={{width: 18, height: 18}}
                   />
-                  <Text style={[styles.btnText]}>Skincare & Facial</Text>
+                  <Text style={[styles.btnText]}>Facial</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.btnStyle}>
                   <Image
                     source={require('../../assets/images/injection.png')}
                     style={{width: 18, height: 18}}
                   />
-                  <Text style={styles.btnText}>Injectables & Fillers </Text>
+                  <Text style={styles.btnText}>Microneedling </Text>
                 </TouchableOpacity>
               </ScrollView>
               <View>
-                <Text style={styles.title}>Recommended Treatments</Text>
+                <Text style={styles.title}>Laser Treatments</Text>
                 <View style={styles.carousalContainer}>
                   <ScrollView
                     ref={scrollRef}
@@ -317,7 +317,7 @@ const TreatmentsScreen = ({navigation}) => {
                 <View style={{paddingHorizontal: 30}}>
                   <View style={styles.nextAppoinment}>
                     <Text style={styles.nextAppoinmentText}>
-                      Laser Treatments
+                      All Treatments
                     </Text>
                     <TouchableOpacity
                       style={styles.forwardBtn}
